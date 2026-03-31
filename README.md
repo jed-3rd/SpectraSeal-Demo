@@ -2,7 +2,7 @@
 
 Public-facing demo site for [SpectraSeal](https://github.com/Jed-3rd/spectraseal), a forensic image watermarking engine. Built with Astro and Tailwind CSS, deployed to GitHub Pages.
 
-**Live site:** [jed-3rd.github.io/spectraseal-demo](https://jed-3rd.github.io/spectraseal-demo)
+**Live site:** [jed-3rd.github.io/SpectraSeal-Demo](https://jed-3rd.github.io/SpectraSeal-Demo)
 
 ## Pages
 
