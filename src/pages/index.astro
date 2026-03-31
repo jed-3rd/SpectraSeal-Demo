@@ -1,0 +1,158 @@
+---
+import Layout from '../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="SpectraSeal — Forensic Watermarking Demo">
+  <!-- Hero -->
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 text-center">
+    <div class="inline-flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-full px-4 py-1.5 text-xs text-gray-400 mb-8">
+      <span class="w-2 h-2 rounded-full bg-[#00e5ff] animate-pulse inline-block"></span>
+      MVP Demo &mdash; DCT + Reed-Solomon Watermarking
+    </div>
+
+    <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+      Invisible.<br />
+      <span style="color: #00e5ff;">Traceable.</span><br />
+      Forensic.
+    </h1>
+
+    <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+      SpectraSeal embeds imperceptible forensic watermarks into images — encoding your identity,
+      timestamp, and IP address directly into the DCT frequency domain. Even after compression,
+      cropping, or screenshots, the watermark remains recoverable.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a
+        href={`${base}/encode`}
+        class="bg-[#00e5ff] text-gray-950 font-semibold hover:bg-cyan-300 rounded-lg px-6 py-3 transition-colors w-full sm:w-auto text-center"
+      >
+        Encode an Image
+      </a>
+      <a
+        href={`${base}/decode`}
+        class="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-gray-100 font-semibold rounded-lg px-6 py-3 transition-colors w-full sm:w-auto text-center"
+      >
+        Decode a Watermark
+      </a>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="bg-gray-900/50 border-y border-gray-800 py-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-center mb-4">How It Works</h2>
+      <p class="text-gray-400 text-center max-w-xl mx-auto mb-12">
+        Three layers of signal engineering combine to make SpectraSeal watermarks both invisible
+        and robust.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div class="text-4xl mb-4">&#9112;</div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #00e5ff;">
+            DCT Frequency Embedding
+          </h3>
+          <p class="text-sm text-gray-400 leading-relaxed">
+            Your payload is encoded into the mid-frequency DCT coefficients of the image — the
+            same domain used by JPEG compression. Modifications here are perceptually invisible
+            to the human eye while remaining machine-detectable.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div class="text-4xl mb-4">&#128273;</div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #00e5ff;">
+            Reed-Solomon ECC
+          </h3>
+          <p class="text-sm text-gray-400 leading-relaxed">
+            The payload is protected with Reed-Solomon error-correcting codes before embedding.
+            This means up to 30% of the encoded signal can be corrupted or lost — through
+            cropping or noise — and the full payload is still recoverable on decode.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div class="text-4xl mb-4">&#128737;</div>
+          <h3 class="text-lg font-semibold mb-2" style="color: #00e5ff;">
+            Survives Attacks
+          </h3>
+          <p class="text-sm text-gray-400 leading-relaxed">
+            SpectraSeal watermarks are designed to survive real-world image transformations:
+            JPEG re-compression at quality &ge;70, moderate cropping, screenshots on typical
+            displays, and downscaling to half resolution.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What's Embedded -->
+  <section class="py-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl font-bold mb-4">What Gets Embedded</h2>
+          <p class="text-gray-400 leading-relaxed mb-6">
+            Every encoded image carries a structured JSON payload that ties the image back to
+            the moment and machine that created it. This metadata is invisible — until you
+            decode it.
+          </p>
+          <ul class="space-y-3 text-sm text-gray-400">
+            <li class="flex items-start gap-2">
+              <span style="color: #00e5ff;" class="mt-0.5 shrink-0">&#10003;</span>
+              <span><strong class="text-gray-200">ID &amp; Label</strong> — your custom label prefixed with "DEMO"</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span style="color: #00e5ff;" class="mt-0.5 shrink-0">&#10003;</span>
+              <span><strong class="text-gray-200">IP Address</strong> — the public IP of the encoding request</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span style="color: #00e5ff;" class="mt-0.5 shrink-0">&#10003;</span>
+              <span><strong class="text-gray-200">Geolocation</strong> — city and country resolved from the IP</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span style="color: #00e5ff;" class="mt-0.5 shrink-0">&#10003;</span>
+              <span><strong class="text-gray-200">Datetime</strong> — UTC timestamp of encoding</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span style="color: #00e5ff;" class="mt-0.5 shrink-0">&#10003;</span>
+              <span><strong class="text-gray-200">Image Hash</strong> — SHA-256 fingerprint of the original image</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <pre class="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto leading-relaxed border border-gray-700"><code><span class="text-gray-500">// Decoded payload example</span>
+<span class="text-[#00e5ff]">&#123;</span>
+  <span class="text-cyan-300">"id"</span><span class="text-gray-400">:</span>         <span class="text-amber-300">"DEMO - your label"</span>,
+  <span class="text-cyan-300">"ip"</span><span class="text-gray-400">:</span>         <span class="text-amber-300">"203.0.113.42"</span>,
+  <span class="text-cyan-300">"geo"</span><span class="text-gray-400">:</span>        <span class="text-amber-300">"Seattle, US"</span>,
+  <span class="text-cyan-300">"datetime"</span><span class="text-gray-400">:</span>   <span class="text-amber-300">"2026-03-25T22:15:00Z"</span>,
+  <span class="text-cyan-300">"image_hash"</span><span class="text-gray-400">:</span> <span class="text-amber-300">"a1b2c3d4e5f6"</span>
+<span class="text-[#00e5ff]">&#125;</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Limits -->
+  <section class="pb-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-2xl mx-auto text-center">
+        <div class="text-3xl mb-4">&#9888;</div>
+        <h2 class="text-xl font-bold mb-3">Demo Usage Limits</h2>
+        <p class="text-gray-400 text-sm leading-relaxed">
+          This is a public demo with rate limiting to prevent abuse. Each IP address is
+          permitted <strong class="text-gray-200">5 uses per calendar month</strong>.
+          Both encode and decode operations consume one credit from the same pool.
+          Credits reset automatically at the start of each month.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>

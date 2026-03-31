@@ -1,0 +1,303 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Decode Image — SpectraSeal">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-10">
+      <h1 class="text-4xl font-extrabold tracking-tight mb-3">Decode a Watermark</h1>
+      <p class="text-gray-400">
+        Upload a SpectraSeal demo-encoded image to reveal the embedded metadata.
+      </p>
+    </div>
+
+    <!-- Usage Counter -->
+    <div
+      id="usage-banner"
+      class="bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 mb-8 flex items-center justify-between"
+    >
+      <span class="text-sm text-gray-400">Monthly usage (encode + decode)</span>
+      <span id="usage-text" class="text-sm font-semibold text-gray-200">Loading&hellip;</span>
+    </div>
+
+    <!-- Limit Reached Banner -->
+    <div
+      id="limit-banner"
+      class="hidden bg-amber-950/40 border border-amber-800 rounded-xl px-5 py-4 mb-8"
+    >
+      <p class="text-amber-400 text-sm font-semibold mb-1">Monthly limit reached</p>
+      <p class="text-amber-500/80 text-xs">
+        Your 5 uses for this month have been used. Resets at the start of next month.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 sm:p-8 space-y-6">
+      <!-- Drop Zone -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Watermarked Image</label>
+        <div
+          id="drop-zone"
+          class="border-2 border-dashed border-gray-700 hover:border-[#00e5ff] rounded-xl p-8 text-center cursor-pointer transition-colors"
+        >
+          <input
+            id="file-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="hidden"
+          />
+          <div id="drop-idle" class="pointer-events-none">
+            <div class="text-4xl mb-3 text-gray-600">&#128269;</div>
+            <p class="text-gray-400 text-sm mb-1">
+              Drag &amp; drop your watermarked image, or <span style="color: #00e5ff;">click to browse</span>
+            </p>
+            <p class="text-gray-600 text-xs">JPEG, PNG, WebP</p>
+          </div>
+          <div id="drop-selected" class="hidden pointer-events-none">
+            <div class="text-4xl mb-3" style="color: #00e5ff;">&#10003;</div>
+            <p id="file-name" class="text-gray-200 text-sm font-medium mb-1"></p>
+            <p class="text-gray-500 text-xs">Click to change file</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        id="decode-btn"
+        disabled
+        class="w-full bg-[#00e5ff] text-gray-950 font-semibold hover:bg-cyan-300 rounded-lg px-6 py-3 transition-colors opacity-40 cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        <span id="btn-label">Decode Image</span>
+        <span id="btn-spinner" class="hidden">
+          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+        </span>
+      </button>
+
+      <!-- Error Message -->
+      <p id="error-msg" class="hidden text-red-400 text-sm text-center"></p>
+    </div>
+
+    <!-- Result Section -->
+    <div id="result-section" class="hidden mt-10">
+      <h2 class="text-xl font-bold mb-6" style="color: #00e5ff;">Embedded Metadata</h2>
+
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        <div class="divide-y divide-gray-800">
+          <!-- ID -->
+          <div class="flex items-start gap-4 px-6 py-4">
+            <span class="text-xs text-gray-500 uppercase tracking-wider w-28 shrink-0 pt-0.5">ID</span>
+            <span id="result-id" class="text-sm text-gray-100 font-mono break-all"></span>
+          </div>
+          <!-- IP Address -->
+          <div class="flex items-start gap-4 px-6 py-4">
+            <span class="text-xs text-gray-500 uppercase tracking-wider w-28 shrink-0 pt-0.5">IP Address</span>
+            <span id="result-ip" class="text-sm font-mono" style="color: #00e5ff;"></span>
+          </div>
+          <!-- Geolocation -->
+          <div class="flex items-start gap-4 px-6 py-4">
+            <span class="text-xs text-gray-500 uppercase tracking-wider w-28 shrink-0 pt-0.5">Geolocation</span>
+            <span id="result-geo" class="text-sm text-gray-100"></span>
+          </div>
+          <!-- Encoded At -->
+          <div class="flex items-start gap-4 px-6 py-4">
+            <span class="text-xs text-gray-500 uppercase tracking-wider w-28 shrink-0 pt-0.5">Encoded At</span>
+            <span id="result-datetime" class="text-sm text-gray-100 font-mono"></span>
+          </div>
+          <!-- Image Hash -->
+          <div class="flex items-start gap-4 px-6 py-4">
+            <span class="text-xs text-gray-500 uppercase tracking-wider w-28 shrink-0 pt-0.5">Image Hash</span>
+            <span id="result-hash" class="text-sm font-mono text-gray-300 break-all"></span>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs text-gray-600 mt-4 text-center">
+        This payload was invisibly embedded in the image using DCT frequency watermarking.
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://spectraseal-api.fly.dev';
+
+  // --- Elements ---
+  const dropZone = document.getElementById('drop-zone') as HTMLDivElement;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const dropIdle = document.getElementById('drop-idle') as HTMLDivElement;
+  const dropSelected = document.getElementById('drop-selected') as HTMLDivElement;
+  const fileNameEl = document.getElementById('file-name') as HTMLParagraphElement;
+  const decodeBtn = document.getElementById('decode-btn') as HTMLButtonElement;
+  const btnLabel = document.getElementById('btn-label') as HTMLSpanElement;
+  const btnSpinner = document.getElementById('btn-spinner') as HTMLSpanElement;
+  const errorMsg = document.getElementById('error-msg') as HTMLParagraphElement;
+  const resultSection = document.getElementById('result-section') as HTMLDivElement;
+  const usageText = document.getElementById('usage-text') as HTMLSpanElement;
+  const limitBanner = document.getElementById('limit-banner') as HTMLDivElement;
+
+  const resultId = document.getElementById('result-id') as HTMLSpanElement;
+  const resultIp = document.getElementById('result-ip') as HTMLSpanElement;
+  const resultGeo = document.getElementById('result-geo') as HTMLSpanElement;
+  const resultDatetime = document.getElementById('result-datetime') as HTMLSpanElement;
+  const resultHash = document.getElementById('result-hash') as HTMLSpanElement;
+
+  let selectedFile: File | null = null;
+  let limitReached = false;
+
+  // --- Usage ---
+  async function loadUsage() {
+    try {
+      const res = await fetch(`${API_BASE}/api/usage`);
+      if (!res.ok) throw new Error();
+      const data = await res.json() as { remaining: number; monthly_limit: number };
+      usageText.textContent = `${data.remaining} of ${data.monthly_limit} remaining this month`;
+      if (data.remaining <= 0) {
+        limitReached = true;
+        limitBanner.classList.remove('hidden');
+      } else if (data.remaining <= 2) {
+        usageText.style.color = '#f59e0b';
+      } else {
+        usageText.style.color = '#00e5ff';
+      }
+    } catch {
+      usageText.textContent = 'Usage unavailable';
+    }
+    updateButtonState();
+  }
+
+  // --- File Selection ---
+  function setFile(file: File) {
+    selectedFile = file;
+    fileNameEl.textContent = file.name;
+    dropIdle.classList.add('hidden');
+    dropSelected.classList.remove('hidden');
+    resultSection.classList.add('hidden');
+    errorMsg.classList.add('hidden');
+    updateButtonState();
+  }
+
+  function updateButtonState() {
+    const canSubmit = !!selectedFile && !limitReached;
+    decodeBtn.disabled = !canSubmit;
+    if (canSubmit) {
+      decodeBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+    } else {
+      decodeBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    }
+  }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-[#00e5ff]');
+    dropZone.classList.remove('border-gray-700');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-[#00e5ff]');
+    dropZone.classList.add('border-gray-700');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-[#00e5ff]');
+    dropZone.classList.add('border-gray-700');
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setFile(file);
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) setFile(file);
+  });
+
+  // --- Submit ---
+  decodeBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    // Loading state
+    decodeBtn.disabled = true;
+    decodeBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    btnLabel.textContent = 'Decoding\u2026';
+    btnSpinner.classList.remove('hidden');
+    errorMsg.classList.add('hidden');
+    resultSection.classList.add('hidden');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      const res = await fetch(`${API_BASE}/api/decode`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.status === 429) {
+        const data = await res.json() as { error: string; resets_at: string };
+        limitReached = true;
+        limitBanner.classList.remove('hidden');
+        usageText.textContent = '0 of 5 remaining this month';
+        usageText.style.color = '#f59e0b';
+        throw new Error(data.error || 'Monthly limit reached.');
+      }
+
+      if (res.status === 422) {
+        const data = await res.json() as { error: string };
+        throw new Error(data.error || 'No SpectraSeal watermark found in this image.');
+      }
+
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const data = await res.json() as {
+        id: string;
+        ip: string;
+        geo: string;
+        datetime: string;
+        image_hash: string;
+      };
+
+      // Populate result fields
+      resultId.textContent = data.id ?? '—';
+      resultIp.textContent = data.ip ?? '—';
+      resultGeo.textContent = data.geo ?? '—';
+
+      // Format datetime nicely if possible
+      if (data.datetime) {
+        try {
+          const dt = new Date(data.datetime);
+          resultDatetime.textContent = `${dt.toUTCString()} (${data.datetime})`;
+        } catch {
+          resultDatetime.textContent = data.datetime;
+        }
+      } else {
+        resultDatetime.textContent = '—';
+      }
+
+      resultHash.textContent = data.image_hash ?? '—';
+
+      resultSection.classList.remove('hidden');
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      await loadUsage();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      errorMsg.textContent = message;
+      errorMsg.classList.remove('hidden');
+    } finally {
+      btnLabel.textContent = 'Decode Image';
+      btnSpinner.classList.add('hidden');
+      updateButtonState();
+    }
+  });
+
+  // --- Init ---
+  loadUsage();
+</script>
