@@ -5,5 +5,5 @@ export default defineConfig({
   integrations: [tailwind()],
   output: 'static',
   site: 'https://jed-3rd.github.io',
-  base: '/spectraseal-demo',
+  base: '/SpectraSeal-Demo',
 });
