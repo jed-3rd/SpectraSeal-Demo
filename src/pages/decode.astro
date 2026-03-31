@@ -11,6 +11,18 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </div>
 
+    <!-- Wake-up Banner (hidden by default) -->
+    <div
+      id="wakeup-banner"
+      class="hidden bg-gray-900 border border-[#00e5ff] rounded-xl px-5 py-4 mb-8 flex items-center gap-3"
+    >
+      <svg class="animate-spin h-4 w-4 shrink-0" style="color: #00e5ff;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      <span class="text-sm" style="color: #00e5ff;">Waking up server &mdash; this may take up to 60 seconds on first visit&hellip;</span>
+    </div>
+
     <!-- Usage Counter -->
     <div
       id="usage-banner"
@@ -122,7 +134,7 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://spectraseal-api.fly.dev';
+  const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://spectraseal-api.onrender.com';
 
   // --- Elements ---
   const dropZone = document.getElementById('drop-zone') as HTMLDivElement;
@@ -137,6 +149,7 @@ import Layout from '../layouts/Layout.astro';
   const resultSection = document.getElementById('result-section') as HTMLDivElement;
   const usageText = document.getElementById('usage-text') as HTMLSpanElement;
   const limitBanner = document.getElementById('limit-banner') as HTMLDivElement;
+  const wakeupBanner = document.getElementById('wakeup-banner') as HTMLDivElement;
 
   const resultId = document.getElementById('result-id') as HTMLSpanElement;
   const resultIp = document.getElementById('result-ip') as HTMLSpanElement;
@@ -147,10 +160,23 @@ import Layout from '../layouts/Layout.astro';
   let selectedFile: File | null = null;
   let limitReached = false;
 
+  // --- Wake-up helper ---
+  let serverAwake = false;
+  function showWakeup() {
+    if (!serverAwake) wakeupBanner.classList.remove('hidden');
+  }
+  function hideWakeup() {
+    serverAwake = true;
+    wakeupBanner.classList.add('hidden');
+  }
+
   // --- Usage ---
   async function loadUsage() {
+    const wakeTimer = setTimeout(showWakeup, 3000);
     try {
       const res = await fetch(`${API_BASE}/api/usage`);
+      clearTimeout(wakeTimer);
+      hideWakeup();
       if (!res.ok) throw new Error();
       const data = await res.json() as { remaining: number; monthly_limit: number };
       usageText.textContent = `${data.remaining} of ${data.monthly_limit} remaining this month`;
@@ -163,6 +189,8 @@ import Layout from '../layouts/Layout.astro';
         usageText.style.color = '#00e5ff';
       }
     } catch {
+      clearTimeout(wakeTimer);
+      hideWakeup();
       usageText.textContent = 'Usage unavailable';
     }
     updateButtonState();
@@ -229,6 +257,7 @@ import Layout from '../layouts/Layout.astro';
     errorMsg.classList.add('hidden');
     resultSection.classList.add('hidden');
 
+    const wakeTimer = setTimeout(showWakeup, 3000);
     try {
       const formData = new FormData();
       formData.append('image', selectedFile);
@@ -237,6 +266,8 @@ import Layout from '../layouts/Layout.astro';
         method: 'POST',
         body: formData,
       });
+      clearTimeout(wakeTimer);
+      hideWakeup();
 
       if (res.status === 429) {
         const data = await res.json() as { error: string; resets_at: string };
@@ -288,6 +319,8 @@ import Layout from '../layouts/Layout.astro';
 
       await loadUsage();
     } catch (err: unknown) {
+      clearTimeout(wakeTimer);
+      hideWakeup();
       const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
       errorMsg.textContent = message;
       errorMsg.classList.remove('hidden');

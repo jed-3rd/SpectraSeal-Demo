@@ -14,7 +14,7 @@ Public-facing demo site for [SpectraSeal](https://github.com/Jed-3rd/spectraseal
 
 - [Astro](https://astro.build/) (static site generation)
 - [Tailwind CSS](https://tailwindcss.com/) (dark theme UI)
-- Calls the SpectraSeal Rust API hosted on Fly.io
+- Calls the SpectraSeal Rust API hosted on Render
 
 ## Getting Started
 
@@ -37,8 +37,8 @@ The frontend calls the SpectraSeal API. Set the URL via environment variable:
 # Local development (API running on localhost)
 PUBLIC_API_URL=http://localhost:8080
 
-# Production (Fly.io)
-PUBLIC_API_URL=https://spectraseal-api.fly.dev
+# Production (Render)
+PUBLIC_API_URL=https://spectraseal-api.onrender.com
 ```
 
 ### Build for Production
